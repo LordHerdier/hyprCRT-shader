@@ -64,6 +64,9 @@ const float SCAN_KEEP_MAX = 0.65; // ceiling on highlight protection
 // -- phosphor mask ----------------------------------------------------
 const float MASK_DARK  = 0.80; // the two channels the stripe is not
 const float MASK_LIGHT = 1.00; // the channel the stripe is
+const float SLOT_H     = 0.0;  // >0 staggers alternate stripe rows (slot
+                               // mask); the value is the row height in
+                               // pixels. 0.0 is a plain aperture grille
 
 // -- tube -------------------------------------------------------------
 const float ABERR_PX     = 1.2;  // r/b convergence error, in pixels
@@ -71,6 +74,12 @@ const float VIGNETTE     = 0.06; // corner falloff; 0.0 is none
 const float BRIGHT_BOOST = 1.15; // pays back what beam and mask take
 const float GAMMA_IN     = 2.2;  // decode; 2.2 is plain sRGB
 const float GAMMA_OUT    = 2.2;  // encode; drop it to lift the midtones
+
+// -- colour -----------------------------------------------------------
+// Both are no-ops at their defaults. MONO collapses the picture to luma
+// before TINT colours it, which is what a single-phosphor monitor does.
+const float MONO = 0.0;             // 0.0 full colour, 1.0 monochrome
+const vec3  TINT = vec3(1.0);       // phosphor colour in linear light
 
 // -- halation ---------------------------------------------------------
 // Off by default: these are the only stage that costs extra taps (12 of
@@ -98,6 +107,7 @@ vec3 encode(vec3 c)    { return pow(max(c, 0.0), vec3(1.0 / GAMMA_OUT)); }
 // at the edges. For a slot mask, shear before taking the fraction:
 // px.x += px.y * 3.0, then fract(px.x * 0.1666666) below.
 vec3 maskWeight(vec2 px) {
+    if (SLOT_H > 0.0) px.x += mod(floor(px.y / SLOT_H), 2.0) * 1.5;
     vec3 m = vec3(MASK_DARK);
     float x = fract(px.x * (1.0 / 3.0));
 
@@ -166,6 +176,7 @@ void main() {
     c.g = texture(tex, uv).g;
     c.b = texture(tex, uv + vec2(-aberr, 0.0)).b;
     c = linearize(c);
+    c = mix(c, vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), MONO) * TINT;
 
     vec3 glow = vec3(0.0);
     if (HALATION > 0.0 || DIFFUSION > 0.0) {

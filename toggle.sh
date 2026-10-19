@@ -10,6 +10,12 @@
 # restored to 2 (Hyprland's default, "full") the moment it's off, so the
 # cost is scoped to a session that actually enables the shader.
 #
+# Usage: toggle.sh [preset]
+#   With no argument, toggles crt.frag. With a preset name (subtle,
+#   trinitron, arcade, green, amber -- see presets/), toggles that one;
+#   asking for a preset while a different one is active switches to it
+#   rather than turning the shader off.
+#
 # Requires: hyprctl (comes with Hyprland), jq.
 #
 # Uses `hyprctl eval` rather than `hyprctl keyword`. The two are not
@@ -25,9 +31,12 @@ set -euo pipefail
 
 dir="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 shader="$dir/crt.frag"
+if [ $# -ge 1 ]; then
+    shader="$dir/presets/$1.frag"
+fi
 
 if [ ! -f "$shader" ]; then
-    echo "toggle.sh: expected crt.frag next to this script at $shader" >&2
+    echo "toggle.sh: no such shader: $shader" >&2
     exit 1
 fi
 

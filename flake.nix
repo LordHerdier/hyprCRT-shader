@@ -22,6 +22,9 @@
           default = pkgs.runCommandLocal "hyprcrt-shader" { } ''
             mkdir -p $out/share/hyprCRT $out/bin
             install -Dm444 ${./crt.frag} $out/share/hyprCRT/crt.frag
+            for f in ${./presets}/*.frag; do
+              install -Dm444 "$f" "$out/share/hyprCRT/presets/$(basename "$f")"
+            done
             install -Dm755 ${./toggle.sh} $out/share/hyprCRT/toggle.sh
             ln -s $out/share/hyprCRT/toggle.sh $out/bin/hyprcrt-toggle
           '';

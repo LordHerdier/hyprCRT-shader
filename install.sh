@@ -18,6 +18,9 @@ dest="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/shaders"
 
 mkdir -p "$dest"
 install -Dm444 "$dir/crt.frag" "$dest/crt.frag"
+for f in "$dir"/presets/*.frag; do
+    install -Dm444 "$f" "$dest/presets/$(basename "$f")"
+done
 install -Dm755 "$dir/toggle.sh" "$dest/toggle.sh"
 
 echo "Installed to $dest"
