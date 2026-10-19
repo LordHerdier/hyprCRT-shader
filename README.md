@@ -82,6 +82,17 @@ only ever paid in a session where the shader is actually on:
 bind = SUPER, F12, exec, ~/.config/hypr/shaders/toggle.sh
 ```
 
+Turning the shader **off** also runs `hyprctl reload`, which reloads your
+Hyprland config: toggling `debug:damage_tracking` back at runtime can
+leave artifacts on screen, and a reload clears them. Because it
+re-reads the config, it also drops any other runtime-only changes you
+made through `hyprctl`. Pass `--no-reload` to skip it:
+
+```
+toggle.sh --no-reload          # turn off without reloading
+toggle.sh --no-reload arcade   # flags and preset can come in either order
+```
+
 It uses `hyprctl eval` rather than `hyprctl keyword`, so it works the
 same way whether your `hyprland.conf` itself is hyprlang or Lua —
 `keyword` only writes through the legacy hyprlang parser and fails
