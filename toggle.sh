@@ -11,6 +11,15 @@
 # cost is scoped to a session that actually enables the shader.
 #
 # Requires: hyprctl (comes with Hyprland), jq.
+#
+# Uses `hyprctl eval` rather than `hyprctl keyword`. The two are not
+# interchangeable: `keyword` writes through the config file's own
+# parser, and as of Hyprland 0.49 that fails outright --
+# "keyword can't work with non-legacy parsers. Use eval." -- the moment
+# your hyprland.conf is written in Lua instead of hyprlang. `eval` runs
+# Lua against the live config state directly (the same `hl.config` call
+# a Lua hyprland.conf would use itself), so it works unconditionally,
+# whichever language parsed your config at startup.
 
 set -euo pipefail
 
@@ -25,9 +34,13 @@ fi
 current="$(hyprctl getoption decoration:screen_shader -j | jq -r '.str')"
 
 if [ "$current" = "$shader" ]; then
-    hyprctl keyword decoration:screen_shader ""
-    hyprctl keyword debug:damage_tracking 2
+    code='hl.config({decoration = {screen_shader = ""}, debug = {damage_tracking = 2}})'
 else
-    hyprctl keyword decoration:screen_shader "$shader"
-    hyprctl keyword debug:damage_tracking 0
+    code="hl.config({decoration = {screen_shader = [[${shader}]]}, debug = {damage_tracking = 0}})"
+fi
+
+result="$(hyprctl eval "$code")"
+if [ "$result" != "ok" ]; then
+    echo "toggle.sh: hyprctl eval failed: $result" >&2
+    exit 1
 fi

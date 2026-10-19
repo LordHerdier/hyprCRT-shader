@@ -78,9 +78,14 @@ only ever paid in a session where the shader is actually on:
 bind = SUPER, F12, exec, ~/.config/hypr/shaders/toggle.sh
 ```
 
-If your Hyprland config is Lua rather than hyprlang, you don't need
-`toggle.sh`'s `hyprctl`/`jq` roundtrip — `hl.config` can read and write
-`decoration.screen_shader` directly:
+It uses `hyprctl eval` rather than `hyprctl keyword`, so it works the
+same way whether your `hyprland.conf` itself is hyprlang or Lua —
+`keyword` only writes through the legacy hyprlang parser and fails
+outright ("keyword can't work with non-legacy parsers. Use eval.") on
+a Lua config.
+
+If your config is already Lua and you'd rather not shell out to
+`hyprctl` at all, the same `hl.config` call works inline:
 
 ```lua
 local shader = os.getenv("HOME") .. "/.config/hypr/shaders/crt.frag"
@@ -108,8 +113,7 @@ costs a 12-tap gaussian per pixel on top of everything else — raise
 `HALATION` first if you want the glow.
 
 Each edit needs a compositor reload of the shader (toggle it off and
-on, or `hyprctl keyword decoration:screen_shader ...` again) to take
-effect.
+on again, or re-run `hyprctl eval` with the new path) to take effect.
 
 ## License
 
